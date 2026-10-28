@@ -515,7 +515,7 @@ function draw() {
 
   const ts = $('tabStatus');
   if (state.isPinterest) {
-    ts.textContent = `Pinterest: ${state.tab.url}`;
+    ts.textContent = `Pinterest: ${new URL(state.tab.url).hostname}${pageLabel(state.tab.url)}`; // bỏ mã %xx trong từ khoá tìm kiếm
     ts.className = 'tab-status ok';
   } else {
     ts.textContent = 'Tab hiện tại không phải Pinterest. Mở một trang Pinterest (tìm kiếm, board, pin) để quét.';

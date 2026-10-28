@@ -123,6 +123,10 @@ Video và ảnh trên Pinterest thuộc về người đăng, nên muốn dùng 
 | `content.js` | ISOLATED world: quét dữ liệu trong trang, tự cuộn, báo về side panel |
 | `lib/pinterest.js` | Tìm link tải (HLS/CMAF/MP4, ảnh gốc), bộ lọc kích thước, đặt tên file |
 | `sidepanel.*` | Giao diện, bộ lọc, hàng đợi tải, nhật ký |
+| `scripts/pack.js` | Đóng gói zip cho Chrome Web Store |
+| `scripts/chrome.js` | Điều khiển Chrome headless qua CDP, dùng cho test e2e và ảnh store |
+| `store/` | Nội dung đăng store (`LISTING.md`), ảnh (`images/`), script tạo ảnh (`build.js`) |
+| `PRIVACY.md` | Chính sách quyền riêng tư |
 
 ## Test
 
@@ -132,7 +136,7 @@ npm test
 Chạy unit test cho `lib/extract.js` và `lib/pinterest.js`, gồm cả gọi CDN và HTML thật của Pinterest. Mất khoảng 2 giây. Đặt `OFFLINE=1` để bỏ phần gọi mạng.
 
 ```bash
-node test/e2e.js
+npm run test:e2e
 ```
 Test đầu-cuối, mất khoảng 1–1,5 phút; tuỳ chọn truyền URL trang Pinterest:
 - Mở Chrome headless với profile tạm ở `.work/e2e/` (đã có trong `.gitignore`; đặt `PVBD_WORK` để đổi chỗ) và nạp extension qua CDP. Chrome 137+ đã bỏ cờ `--load-extension`.
@@ -140,6 +144,20 @@ Test đầu-cuối, mất khoảng 1–1,5 phút; tuỳ chọn truyền URL tran
 - Lưu ảnh chụp side panel ở khổ hẹp và khổ rộng.
 
 Phần lớn thời gian là chờ trang và CDN Pinterest. Profile này chưa đăng nhập.
+
+## Đăng Chrome Web Store
+
+```bash
+npm run package
+```
+Lệnh này tạo `dist/pinterest-media-bulk-downloader-<phiên bản>.zip`. Zip chỉ gồm các file extension dùng tới, lần theo manifest, HTML và import.
+
+```bash
+npm run store:images
+```
+Lệnh này tạo lại ảnh chụp và ảnh promo trong `store/images/` từ dữ liệu mẫu, chạy offline khoảng 1 phút.
+
+Nội dung cần điền ở từng tab của Developer Dashboard (mô tả, lý do xin quyền, khai báo dữ liệu, link chính sách quyền riêng tư) nằm trong [store/LISTING.md](store/LISTING.md). Chính sách quyền riêng tư: [PRIVACY.md](PRIVACY.md).
 
 ## Giới hạn
 

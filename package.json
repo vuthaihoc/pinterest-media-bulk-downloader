@@ -5,6 +5,9 @@
   "description": "Chrome extension (MV3). File này chỉ để chạy test bằng Node, Chrome không đọc nó.",
   "scripts": {
     "test": "node test/pinterest.test.js",
-    "test:offline": "OFFLINE=1 node test/pinterest.test.js"
+    "test:offline": "OFFLINE=1 node test/pinterest.test.js",
+    "test:e2e": "node test/e2e.js",
+    "package": "OFFLINE=1 node test/pinterest.test.js && node scripts/pack.js",
+    "store:images": "node store/build.js"
   }
 }

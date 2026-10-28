@@ -29,13 +29,13 @@ chrome.webRequest.onBeforeRequest.addListener(
 );
 
 // Tab tải trang mới thì bỏ danh sách cũ: video của các trang trước không có dữ liệu pin (người đăng,
-// pin ID) trên trang mới, và sẽ bị ghi nhầm là tìm thấy ở trang mới. Chỉ bắt được trang thuộc host có
-// quyền, tức là Pinterest.
+// pin ID) trên trang mới, và sẽ bị ghi nhầm là tìm thấy ở trang mới. Chỉ nghe các tên miền Pinterest
+// khai báo trong manifest.
 chrome.webRequest.onBeforeRequest.addListener(
   ({ tabId }) => {
     if (tabId >= 0) chain = chain.then(() => chrome.storage.session.remove(`net:${tabId}`)).catch(() => {});
   },
-  { urls: ['<all_urls>'], types: ['main_frame'] },
+  { urls: chrome.runtime.getManifest().host_permissions.filter((u) => u.includes('.pinterest.')), types: ['main_frame'] },
 );
 
 chrome.tabs.onRemoved.addListener((tabId) => chrome.storage.session.remove(`net:${tabId}`));

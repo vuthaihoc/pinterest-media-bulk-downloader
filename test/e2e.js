@@ -1,66 +1,17 @@
 // Test đầu-cuối: mở Chrome headless với profile tạm, nạp extension qua CDP, mở một trang Pinterest,
 // rồi điều khiển side panel: quét → đặt delay → tải 2 video → đọc nhật ký và file đã tải.
 // Chạy: node test/e2e.js [url Pinterest]. Profile và file tải nằm ở .work/e2e/ (hoặc $PVBD_WORK).
-// Chrome 137+ bỏ cờ --load-extension, nên phải dùng Extensions.loadUnpacked qua --remote-debugging-pipe.
-import { spawn } from 'node:child_process';
-import { mkdirSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { readdirSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { launchChrome, sleep } from '../scripts/chrome.js';
 
 const EXT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const WORK = process.env.PVBD_WORK ?? resolve(EXT, '.work/e2e'); // nằm trong .gitignore
 const PAGE = process.argv[2] ?? 'https://www.pinterest.com/search/videos/?q=study%20desk%20aesthetic';
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-rmSync(WORK, { recursive: true, force: true });
-mkdirSync(`${WORK}/profile/Default`, { recursive: true });
-mkdirSync(`${WORK}/downloads`);
-writeFileSync(
-  `${WORK}/profile/Default/Preferences`,
-  JSON.stringify({ download: { default_directory: `${WORK}/downloads`, prompt_for_download: false } }),
-);
-
-const chrome = spawn(
-  'google-chrome',
-  [
-    '--headless=new',
-    '--remote-debugging-pipe',
-    '--enable-unsafe-extension-debugging',
-    `--user-data-dir=${WORK}/profile`,
-    '--no-first-run',
-    '--no-default-browser-check',
-    '--window-size=1280,900',
-    'about:blank',
-  ],
-  { stdio: ['ignore', 'ignore', 'ignore', 'pipe', 'pipe'] },
-);
-
-let seq = 0;
-let buf = '';
-const waiters = new Map();
-chrome.stdio[4].on('data', (chunk) => {
-  buf += chunk;
-  for (let i; (i = buf.indexOf('\0')) >= 0; ) {
-    const msg = JSON.parse(buf.slice(0, i));
-    buf = buf.slice(i + 1);
-    const w = msg.id && waiters.get(msg.id);
-    if (!w) continue;
-    waiters.delete(msg.id);
-    msg.error ? w.reject(new Error(JSON.stringify(msg.error))) : w.resolve(msg.result);
-  }
-});
-const send = (method, params = {}, sessionId) =>
-  new Promise((resolve, reject) => {
-    const id = ++seq;
-    waiters.set(id, { resolve, reject });
-    chrome.stdio[3].write(`${JSON.stringify({ id, method, params, sessionId })}\0`);
-  });
-async function evaluate(sessionId, expression) {
-  const r = await send('Runtime.evaluate', { expression, awaitPromise: true, returnByValue: true }, sessionId);
-  if (r.exceptionDetails) throw new Error(r.exceptionDetails.exception?.description ?? r.exceptionDetails.text);
-  return r.result.value;
-}
-const attach = async (targetId) => (await send('Target.attachToTarget', { targetId, flatten: true })).sessionId;
+const chrome = launchChrome(WORK);
+const { send, evaluate, attach } = chrome;
 
 try {
   const { id: extId } = await send('Extensions.loadUnpacked', { path: EXT });
@@ -237,5 +188,5 @@ try {
   console.error('LỖI:', e.message);
   process.exitCode = 1;
 } finally {
-  chrome.kill();
+  chrome.close();
 }
