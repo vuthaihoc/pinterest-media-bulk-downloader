@@ -1,0 +1,94 @@
+{
+  "manifest_version": 3,
+  "name": "Pinterest Media Bulk Downloader",
+  "version": "1.1.0",
+  "description": "Quét video và ảnh trên trang Pinterest, tải hàng loạt có delay cấu hình được. Số lượng, bộ lọc và thao tác hiện trong side panel.",
+  "minimum_chrome_version": "116",
+  "permissions": [
+    "sidePanel",
+    "downloads",
+    "storage",
+    "scripting",
+    "webRequest"
+  ],
+  "host_permissions": [
+    "https://*.pinterest.com/*",
+    "https://*.pinterest.co.uk/*",
+    "https://*.pinterest.ca/*",
+    "https://*.pinterest.com.au/*",
+    "https://*.pinterest.de/*",
+    "https://*.pinterest.fr/*",
+    "https://*.pinterest.es/*",
+    "https://*.pinterest.it/*",
+    "https://*.pinterest.jp/*",
+    "https://*.pinterest.co.kr/*",
+    "https://*.pinterest.com.mx/*",
+    "https://*.pinterest.ph/*",
+    "https://*.pinimg.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  },
+  "action": {
+    "default_title": "Pinterest Media Bulk Downloader",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://*.pinterest.com/*",
+        "https://*.pinterest.co.uk/*",
+        "https://*.pinterest.ca/*",
+        "https://*.pinterest.com.au/*",
+        "https://*.pinterest.de/*",
+        "https://*.pinterest.fr/*",
+        "https://*.pinterest.es/*",
+        "https://*.pinterest.it/*",
+        "https://*.pinterest.jp/*",
+        "https://*.pinterest.co.kr/*",
+        "https://*.pinterest.com.mx/*",
+        "https://*.pinterest.ph/*"
+      ],
+      "js": [
+        "page-hook.js"
+      ],
+      "run_at": "document_start",
+      "world": "MAIN"
+    },
+    {
+      "matches": [
+        "https://*.pinterest.com/*",
+        "https://*.pinterest.co.uk/*",
+        "https://*.pinterest.ca/*",
+        "https://*.pinterest.com.au/*",
+        "https://*.pinterest.de/*",
+        "https://*.pinterest.fr/*",
+        "https://*.pinterest.es/*",
+        "https://*.pinterest.it/*",
+        "https://*.pinterest.jp/*",
+        "https://*.pinterest.co.kr/*",
+        "https://*.pinterest.com.mx/*",
+        "https://*.pinterest.ph/*"
+      ],
+      "js": [
+        "lib/extract.js",
+        "content.js"
+      ],
+      "run_at": "document_start"
+    }
+  ]
+}

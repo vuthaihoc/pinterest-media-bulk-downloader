@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Pinterest Media Bulk Downloader</title>
+    <link rel="stylesheet" href="sidepanel.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Pinterest Media Bulk Downloader</h1>
+      <p id="tabStatus" class="tab-status"></p>
+    </header>
+
+    <nav class="tabs" role="tablist">
+      <button role="tab" data-kind="video" id="tabVideo">Video</button>
+      <button role="tab" data-kind="image" id="tabImage">Ảnh</button>
+    </nav>
+
+    <div class="top">
+      <section class="row">
+        <button id="btnScan">Quét trang</button>
+        <button id="btnScroll">Tự cuộn + quét</button>
+      </section>
+
+      <section class="stats">
+        <div><b id="statFound">0</b><span>Phát hiện</span></div>
+        <div><b id="statSelected">0</b><span>Đã chọn</span></div>
+        <div><b id="statReady">0</b><span>Sẵn sàng</span></div>
+        <div class="ok"><b id="statDone">0</b><span>Đã tải</span></div>
+        <div class="err"><b id="statError">0</b><span>Lỗi</span></div>
+        <div class="muted"><b id="statSkipped">0</b><span>Bỏ qua</span></div>
+      </section>
+
+      <section class="progress">
+        <div class="bar"><div id="bar"></div></div>
+        <p id="phase">Chưa chạy</p>
+      </section>
+
+      <section class="row">
+        <button id="btnDownload" class="primary">Tải</button>
+        <button id="btnStop" class="danger">Dừng</button>
+      </section>
+
+      <details id="settings">
+        <summary>Cài đặt</summary>
+        <form id="settingsForm" class="settings">
+          <label>Delay giữa mỗi file (giây)
+            <input type="number" name="delaySec" min="0" step="0.5" />
+          </label>
+          <label>Cộng thêm ngẫu nhiên tối đa (giây)
+            <input type="number" name="jitterSec" min="0" step="0.5" />
+          </label>
+          <label>Số file tối đa mỗi lượt (0 = không giới hạn)
+            <input type="number" name="maxPerRun" min="0" step="1" />
+          </label>
+          <label>Đặt tên file
+            <select name="naming">
+              <option value="creator">nick - tên hiển thị - mã</option>
+              <option value="pin">pin_&lt;pin ID&gt;</option>
+              <option value="hash">&lt;mã video/ảnh&gt;</option>
+            </select>
+          </label>
+          <fieldset>
+            <legend>Video</legend>
+            <label>Chất lượng
+              <select name="quality">
+                <option value="best">Nét nhất (video không tiếng)</option>
+                <option value="mp4">MP4 có tiếng (có thể kém nét)</option>
+              </select>
+            </label>
+            <label class="check"><input type="checkbox" name="withAudio" /> Tải kèm âm thanh riêng (.m4a)</label>
+            <label>Thư mục trong Downloads
+              <input type="text" name="folder" placeholder="pinterest-videos" />
+            </label>
+          </fieldset>
+          <fieldset>
+            <legend>Ảnh</legend>
+            <label class="check"><input type="checkbox" name="imagesFromVideoPins" /> Gồm cả ảnh bìa của pin video</label>
+            <label>Thư mục trong Downloads
+              <input type="text" name="imageFolder" placeholder="pinterest-images" />
+            </label>
+          </fieldset>
+          <label>Tự cuộn: số lần
+            <input type="number" name="scrollSteps" min="1" step="1" />
+          </label>
+          <label>Tự cuộn: chờ mỗi lần (giây)
+            <input type="number" name="scrollDelaySec" min="0.5" step="0.5" />
+          </label>
+          <label class="check"><input type="checkbox" name="liveAdd" /> Tự thêm khi trang cuộn</label>
+          <label class="check"><input type="checkbox" name="skipDownloaded" /> Bỏ qua file đã tải trước đó</label>
+          <label class="check"><input type="checkbox" name="saveManifest" /> Lưu manifest JSON sau mỗi lượt tải</label>
+          <button type="button" id="btnClearHistory">Xoá lịch sử đã tải</button>
+        </form>
+      </details>
+
+      <section class="filters">
+        <select id="filterPage" aria-label="Lọc theo trang tìm thấy"><option value="*">Mọi trang</option></select>
+        <select id="filterUser" aria-label="Lọc theo người đăng"><option value="*">Mọi người đăng</option></select>
+        <select id="filterSize" aria-label="Lọc theo kích thước">
+          <option value="*">Mọi kích thước</option>
+          <option value="1080">Từ 1080p</option>
+          <option value="720">Từ 720p</option>
+          <option value="540">Từ 540p</option>
+          <option value="480">Từ 480p</option>
+          <option value="lt480">Dưới 480p</option>
+        </select>
+        <select id="filterOrient" aria-label="Lọc theo hướng">
+          <option value="*">Mọi hướng</option>
+          <option value="portrait">Dọc</option>
+          <option value="landscape">Ngang</option>
+          <option value="square">Vuông</option>
+        </select>
+        <select id="filter" aria-label="Lọc theo trạng thái">
+          <option value="all">Mọi trạng thái</option>
+          <option value="pending">Chưa tải</option>
+          <option value="done">Đã tải</option>
+          <option value="error">Lỗi</option>
+        </select>
+      </section>
+
+      <section class="list-head">
+        <label class="check"><input type="checkbox" id="chkAll" /> Chọn tất cả (đang hiển thị)</label>
+        <span class="row small">
+          <button id="btnExport">Xuất JSON</button>
+          <button id="btnCopy">Copy link</button>
+          <button id="btnClear">Xoá danh sách</button>
+        </span>
+      </section>
+    </div>
+
+    <ul id="list" class="list"></ul>
+
+    <details open class="log-box">
+      <summary>Nhật ký thao tác</summary>
+      <ol id="log" class="log"></ol>
+    </details>
+
+    <script src="lib/extract.js"></script>
+    <script type="module" src="sidepanel.js"></script>
+  </body>
+</html>
